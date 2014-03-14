@@ -1,0 +1,70 @@
+upstream gunicorn {
+    server unix:/var/run/gunicorn/gunicorn.sock fail_timeout=0;
+}
+
+server {
+    listen 80;
+    server_name sample.com;
+    return 301 http://www.sample.com$request_uri;
+}
+
+server {
+    listen 80;
+    server_name  www.sample.com;
+
+    # Enable pagespeed
+    pagespeed on;
+
+    # Needs to exist and be writable by nginx.
+    pagespeed FileCachePath /var/ngx_pagespeed_cache;
+
+    # Ensure requests for pagespeed optimized resources
+    # go to the pagespeed handler
+    # and no extraneous headers get set.
+    location ~ "\.pagespeed\.([a-z]\.)?[a-z]{2}\.[^.]{10}\.[^.]+" {
+        add_header "" "";
+    }
+
+    location ~ "^/ngx_pagespeed_static/" { }
+    location ~ "^/ngx_pagespeed_beacon$" { }
+    location /ngx_pagespeed_statistics { allow 127.0.0.1; deny all; }
+    location /ngx_pagespeed_global_statistics { allow 127.0.0.1; deny all; }
+    location /ngx_pagespeed_message { allow 127.0.0.1; deny all; }
+
+    pagespeed DisableFilters rewrite_images,inline_javascript,inline_css;
+    pagespeed EnableFilters convert_meta_tags;
+    pagespeed EnableFilters canonicalize_javascript_libraries;
+    pagespeed EnableFilters combine_css,combine_javascript;
+    pagespeed EnableFilters rewrite_css,rewrite_javascript;
+
+    # The target subject
+    pagespeed Domain www.sample.com;
+
+    # Keep in mind port that we're binding on the host
+    # (have to set it on localhost if not 80)
+    #pagespeed MapProxyDomain localhost www.sample.com;
+
+    # Force caching to get the css into pagespeed cache
+    pagespeed ForceCaching on;
+ 
+    location /static/ {
+        alias   /var/www/static/;
+    }
+    
+    location /media/ {
+        alias   /var/www/media/;
+    }
+
+    location / {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+        proxy_pass http://gunicorn;
+    }
+ 
+    # Error pages
+    error_page 500 502 503 504 /500.html;
+    location = /500.html {
+        root /var/www/static/;
+    }
+}
