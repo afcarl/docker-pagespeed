@@ -26,7 +26,7 @@ RUN apt-key adv --fetch-keys http://nginx.org/keys/nginx_signing.key
 RUN echo "deb-src http://nginx.org/packages/ubuntu/ precise nginx" >> /etc/apt/sources.list.d/nginx-precise.list
 
 # Add pico; we'll do some local mods anyway
-RUN apt-get update &&  apt-get install nano -y
+RUN apt-get update &&  apt-get install nano vim -y
 
 # Install Nginx from a tarball
 # Install build tools for nginx
@@ -84,11 +84,17 @@ RUN cd /usr/src/nginx-${NGINX_VERSION} && make && make install
 
 ADD nginx /etc/nginx/
 
+VOLUME /etc/nginx/sites-enabled
+VOLUME /var/run/gunicorn
+VOLUME /var/log/nginx
+VOLUME /var/www/static
+VOLUME /var/www/media
+
 # Turn off nginx starting as a daemon
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 
 # Purge APT cache
 RUN apt-get clean all
 
-EXPOSE 80 443
+EXPOSE 80
 CMD ["nginx"]
