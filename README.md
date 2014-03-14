@@ -1,18 +1,20 @@
 docker-pagespeed
 ================
 
-Sample Dockerfile and Nginx configuration to run nginx + ngx_pagespeed. In the
-current configuration, nginx acts as a reverse proxy. In future, this will also include
-a working SPDY configuration.
+Sample Dockerfile and Nginx configuration to run nginx + ngx_pagespeed.
 
-Prior to building, please note that nginx config points to a non-existing site www.sample.com.
-Change that with your own setup.
+Build an image with::
 
-Build an image with
-    docker build -t="nginx-pagespeed" -no-cache .
+    % sudo docker build -t="nginx-pagespeed" -no-cache .
 
-And start it with
-    docker run -p 59080:80 -i -t nginx-pagespeed
+And start it with::
 
-For debugging & playing with nginx config on the image, do
-    docker run -p 59080:80 -i -t nginx-defer /bin/bash
+    % sudo docker run -p 80:80 -i -t \
+    -v ~/sites-enabled:/etc/nginx/sites-enabled \
+    -v ~/logs:/var/log/nginx \
+    -v ~/media:/var/www/media \
+    -v ~/static:/var/www/static \
+    -v ~/run/gunicorn:/var/run/gunicorn \
+    nginx-pagespeed
+
+For debugging & playing with nginx config on the image, do the above command but add ``/bin/bash`` at the end (and possibly host port mapping).
