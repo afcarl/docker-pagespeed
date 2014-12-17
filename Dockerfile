@@ -15,7 +15,7 @@ deb-src http://archive.ubuntu.com/ubuntu utoppic main restricted universe\n\
 deb http://archive.ubuntu.com/ubuntu utopic-updates main restricted universe\n\
 deb-src http://archive.ubuntu.com/ubuntu utopic-updates main restricted universe\n" > /etc/apt/sources.list \
  && locale-gen en_US.UTF-8 \
- && dpkg-reconfigure locales
+ && dpkg-reconfigure locales \
  && apt-key adv --fetch-keys http://nginx.org/keys/nginx_signing.key \
  && echo "deb-src http://nginx.org/packages/ubuntu/ utopic nginx" > /etc/apt/sources.list.d/nginx-src.list \
  && apt-get update \
